@@ -1,1 +1,1 @@
-# sicp
+Scheme Exercises
