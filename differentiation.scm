@@ -94,7 +94,10 @@
     (error "unknown expression type -- DERIV" exp))))
 
 
-(deriv '(+ x 3) 'x)
-(deriv '(* x y) 'x)
-(deriv '(* (* x y) (+ x 3)) 'x)
-(deriv '(** x 3) 'x)
+(equal? (deriv '(+ x 3) 'x) 1)
+
+(equal? (deriv '(* x y) 'x) 'y)
+
+(equal? (deriv '(* (* x y) (+ x 3)) 'x) '(+ (* x y) (* y (+ x 3))))
+
+(equal? (deriv '(** x 3) 'x) '(* 3 (** x 2)))
