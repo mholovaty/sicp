@@ -40,15 +40,19 @@
 
 (define (multiplicand p)
   "Multiplicand of the product `p'."
-  (caddr p))
+  (apply make-product (cddr p)))
 
-(define (make-product m1 m2)
-  "Construct the product of `m1' and `m2'."
-  (cond ((or (=number? m1 0) (=number? m2 0)) 0)
-	((=number? m1 1) m2)
-	((=number? m2 1) m1)
-	((and (number? m1) (number? m2)) (* m1 m2))
-	(else (list '* m1 m2))))
+(define (make-product . m)
+  "Construct the product of `m1', `m2', ..."
+  (if
+   (null? m) 1
+   (let ((m1 (car m))
+	 (m2 (apply make-product (cdr m))))
+     (cond ((=number? m2 1) m1)
+	   ((=number? m1 1) m2)
+	   ((or (=number? m1 0) (=number? m2 0)) 0)
+	   ((and (number? m1) (number? m2)) (* m1 m2))
+	   (else (list '* m1 m2))))))
 
 (define (exponentiation? x)
   "Is `x' an exponentiation?"
