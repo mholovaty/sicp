@@ -21,14 +21,18 @@
 
 (define (augend s)
   "Augend of the sum `s'."
-  (caddr s))
+  (apply make-sum (cddr s)))
 
-(define (make-sum a1 a2)
-  "Construct the sum of `a1' and `a2'."
-  (cond ((=number? a1 0) a2)
-	((=number? a2 0) a1)
-	((and (number? a1) (number? a2)) (+ a1 a2))
-	(else (list '+ a1 a2))))
+(define (make-sum . a)
+  "Construct the sum of `a1', `a2', ..."
+  (if
+   (null? a) 0
+   (let ((a1 (car a))
+	 (a2 (apply make-sum (cdr a))))
+     (cond ((=number? a2 0) a1)
+	   ((=number? a1 0) a2)
+	   ((and (number? a1) (number? a2)) (+ a1 a2))
+	   (else (list '+ a1 a2))))))
 
 (define (product? x)
   "Is `x' a product?"
