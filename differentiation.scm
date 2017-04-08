@@ -21,18 +21,35 @@
 
 (define (augend s)
   "Augend of the sum `s'."
-  (apply make-sum (cddr s)))
+   (apply make-sum (cddr s)))
+
+(define (_reduce-arguments op i l)
+  "Reduce arguments of each type, where
+  `op' - operation
+  `i'  - identity unit
+  `l'  - list of arguments"
+  (define (iter l)
+    (if (null? l)
+	(cons i l)
+	(let ((lp (iter (cdr l))))
+	  (if
+	   (number? (car l))
+	   (cons (op (car l) (car lp)) (cdr lp))
+	   (cons (car lp) (cons (car l) (cdr lp)))))))
+  (iter l))
 
 (define (make-sum . a)
   "Construct the sum of `a1', `a2', ..."
-  (if
-   (null? a) 0
-   (let ((a1 (car a))
-	 (a2 (apply make-sum (cdr a))))
-     (cond ((=number? a2 0) a1)
-	   ((=number? a1 0) a2)
-	   ((and (number? a1) (number? a2)) (+ a1 a2))
-	   (else (list '+ a1 a2))))))
+  (define (_make-sum . a)
+    (if
+     (null? a) 0
+     (let ((a1 (car a))
+	   (a2 (apply _make-sum (cdr a))))
+       (cond ((=number? a2 0) a1)
+	     ((=number? a1 0) a2)
+	     ;; ((and (number? a1) (number? a2)) (+ a1 a2))
+	     (else (list '+ a1 a2))))))
+  (apply _make-sum (_reduce-arguments + 0 a)))
 
 (define (product? x)
   "Is `x' a product?"
@@ -48,15 +65,17 @@
 
 (define (make-product . m)
   "Construct the product of `m1', `m2', ..."
-  (if
-   (null? m) 1
-   (let ((m1 (car m))
-	 (m2 (apply make-product (cdr m))))
-     (cond ((=number? m2 1) m1)
-	   ((=number? m1 1) m2)
-	   ((or (=number? m1 0) (=number? m2 0)) 0)
-	   ((and (number? m1) (number? m2)) (* m1 m2))
-	   (else (list '* m1 m2))))))
+  (define (_make-product . m)
+    (if
+     (null? m) 1
+     (let ((m1 (car m))
+	   (m2 (apply _make-product (cdr m))))
+       (cond ((=number? m2 1) m1)
+	     ((=number? m1 1) m2)
+	     ((or (=number? m1 0) (=number? m2 0)) 0)
+	     ;; ((and (number? m1) (number? m2)) (* m1 m2))
+	     (else (list '* m1 m2))))))
+  (apply _make-product (_reduce-arguments * 1 m)))
 
 (define (exponentiation? x)
   "Is `x' an exponentiation?"
@@ -102,22 +121,28 @@
     (error "unknown expression type -- DERIV" exp))))
 
 
-(equal?
- (deriv '(+ x 3) 'x)
- 1)
+;; Tests
+(and
+ (equal?
+  (deriv '(+ x 3) 'x)
+  1)
 
-(equal?
- (deriv '(* x y) 'x)
- 'y)
+ (equal?
+  (deriv '(* x y) 'x)
+  'y)
 
-(equal?
- (deriv '(* (* x y) (+ x 3)) 'x)
- '(+ (* x y) (* y (+ x 3))))
+ (equal?
+  (deriv '(* (* x y) (+ x 3)) 'x)
+  '(+ (* x y) (* y (+ x 3))))
 
-(equal?
- (deriv '(* x y (+ x 3)) 'x)
- '(+ (* x y) (* y (+ x 3))))
+ (equal?
+  (deriv '(* x y (+ x 3)) 'x)
+  '(+ (* x y) (* y (+ x 3))))
 
-(equal?
- (deriv '(** x 3) 'x)
- '(* 3 (** x 2)))
+ (equal?
+  (deriv '(** x 3) 'x)
+  '(* 3 (** x 2)))
+
+ (equal?
+  (_reduce-arguments + 0 (list 'x 1 2 3 'y))
+  '(6 x y)))
